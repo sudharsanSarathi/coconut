@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story | Tender Coconut</title>
+    <link rel="stylesheet" href="coconut.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #FFF7E5;
+            font-family: 'Poppins', sans-serif;
+            color: #28292D;
+        }
+        
+        .story-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 100%;
+            overflow-y: auto;
+        }
+        
+        .title-bar {
+            display: flex;
+            align-items: center;
+            padding: 16px 16px 12px;
+            background-color: #FFFFFF;
+            height: 68px;
+            box-sizing: border-box;
+        }
+        
+        .left-icon {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+        }
+        
+        .title {
+            margin-left: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            color: #28292D;
+        }
+        
+        .story-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 24px;
+            gap: 16px;
+        }
+        
+        .page-title {
+            color: #34353A;
+            text-align: center;
+            font-weight: 400;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        
+        .my-linkedin {
+            color: #34353A;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .my-linkedin:hover {
+            text-decoration: underline;
+        }
+        
+        .story-card {
+            background-color: transparent;
+            padding: 24px 0;
+            width: 312px;
+        }
+        
+        .story-title {
+            font-weight: 600;
+            font-size: 24px;
+            color: #000000;
+            margin-bottom: 16px;
+        }
+        
+        .story-text {
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #000000;
+            margin-bottom: 24px;
+        }
+        
+        .profile-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 24px;
+            position: relative;
+        }
+        
+        .profile-image {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            object-fit: cover;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .profile-glow {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(241,232,211,0) 81%, rgba(255,247,229,1) 100%);
+            z-index: 0;
+        }
+        
+        .left-icon img {
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="story-container">
+        <div class="title-bar">
+            <div class="left-icon" onclick="history.back()">
+                <img src="images/story/back-arrow.svg" alt="Back" style="width: 16px; height: 16px;">
+            </div>
+            <div class="title">Story</div>
+        </div>
+        
+        <div class="story-content">
+            <div class="story-card">
+                <h1 class="story-title">Coconuts +AI + Chaos</h1>
+                <div class="story-text">
+                    <p>So, this is just me having fun, using/learning AI to build apps. No big business plans, no tech team—just me, some AI tools, and fresh coconuts.</p>
+                    <br>
+                    <p>My dad—he owns a coconut farm, and this helps him watch a bit of cash while I play around with side projects.</p>
+                    <br>
+                    <p>Oh, and hey <b>Zepto, Blinkit, Swish, Instamart</b>—if you're lurking, I can hook you up with bulk orders of farm-fresh, pesticide-free coconuts. Just try it once, you won't regret it! 🥥</p>
+                </div>
+                
+                <div class="profile-container">
+                    <img src="images/story/profile-image.png" alt="Profile" class="profile-image">
+                    <div class="profile-glow"></div>
+                </div>
+            </div>
+            
+            <div class="page-title">
+                A professional touch <a href="https://www.linkedin.com/in/sudharsan-sarathi/" class="my-linkedin" target="_blank">My LinkedIn</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

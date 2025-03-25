@@ -1,0 +1,50 @@
+{
+  "name": "coconut-delivery",
+  "version": "1.0.0",
+  "description": "Tender Coconut Delivery application with Cashfree payment",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "coconut",
+    "delivery",
+    "cashfree",
+    "payment"
+  ],
+  "engines": {
+    "node": ">=14.x"
+  },
+  "dependencies": {
+    "crypto": "^1.0.1"
+  },
+  "devDependencies": {
+    "vercel": "^32.3.0"
+  },
+  "cashfreeIntegration": {
+    "notes": [
+      "For production, create a server endpoint at /api/create-order that calls Cashfree's order creation API",
+      "The server endpoint should return a payment_session_id which is then used in the checkout() method",
+      "Use the V3 SDK from https://sdk.cashfree.com/js/v3/cashfree.js",
+      "Documentation: https://www.cashfree.com/docs/payments/online/web/redirect"
+    ],
+    "serverEndpointExample": {
+      "path": "/api/create-order",
+      "method": "POST",
+      "requestBody": {
+        "orderAmount": "Total amount as number",
+        "orderCurrency": "INR",
+        "customerDetails": {
+          "customerId": "Unique user ID",
+          "customerName": "User's name",
+          "customerEmail": "User's email",
+          "customerPhone": "User's phone"
+        }
+      },
+      "responseBody": {
+        "paymentSessionId": "Session ID from Cashfree"
+      }
+    }
+  }
+}

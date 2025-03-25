@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Address - Coconut Delivery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background-color: #F9F7F2;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .title-bar {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            padding: 16px 16px 12px;
+            background: #FFFFFF;
+            width: 100%;
+            height: 68px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+        
+        .left-icon {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+        }
+        
+        .left-icon img {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #28292D;
+        }
+        
+        .content {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            padding-top: 68px; /* Height of title bar */
+            height: calc(100vh - 230px); /* Adjust for space taken by bottom container */
+        }
+        
+        .map-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .location-button {
+            position: absolute;
+            bottom: 100px;
+            right: 16px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+            height: 40px;
+            width: 40px;
+            cursor: pointer;
+        }
+        
+        .location-button img {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .center-pin {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .pin-label {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+            margin-bottom: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .pin-label .small-text {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .pin-marker {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 24px; /* Offset for pin point */
+        }
+        
+        .address-container {
+            background: #FFF7E5;
+            box-shadow: 0px -2px 8px rgba(16, 16, 18, 0.08);
+            border-radius: 16px 16px 0 0;
+            padding: 24px 21px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            z-index: 10;
+        }
+        
+        .address-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+        }
+        
+        .address-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .current-address {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .current-address-label {
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 1.6667em;
+            letter-spacing: 0.25px;
+            color: #73757A;
+            text-transform: uppercase;
+        }
+        
+        .current-address-value {
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 1.5714em;
+            color: #28292D;
+        }
+        
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+        
+        .input-area {
+            display: flex;
+            align-items: center;
+            background: #FFFFFF;
+            border: 1px solid #B9BABD;
+            border-radius: 12px;
+            padding: 12px 16px;
+            height: 48px;
+        }
+        
+        .input-area.error {
+            border-color: #FF3B30;
+        }
+        
+        .input-label {
+            font-weight: 400;
+            font-size: 16px;
+            color: #73757A;
+        }
+        
+        .error-message {
+            color: #FF3B30;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .confirm-button {
+            background: #1D1D1D;
+            border-radius: 12px;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            height: 56px;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .confirm-button-text {
+            font-weight: 500;
+            font-size: 16px;
+            color: #FFFFFF;
+        }
+        
+        .confirm-button img {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .delivering-notice {
+            background: #F86930;
+            border-radius: 4px;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: fit-content;
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            white-space: nowrap;
+        }
+        
+        .delivering-notice-text {
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 1.26em;
+            letter-spacing: 0.214px;
+            color: #ffffff;
+        }
+        
+        /* Custom Leaflet controls */
+        .leaflet-control-zoom {
+            border: none !important;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .leaflet-control-zoom a {
+            width: 32px !important;
+            height: 32px !important;
+            line-height: 32px !important;
+            border-radius: 4px !important;
+            background-color: white !important;
+            color: #333 !important;
+        }
+    </style>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Replace Cashfree SDK with Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="title-bar">
+        <div class="left-icon" id="back-button">
+            <img src="images/arrow-backward.svg" alt="Back">
+        </div>
+        <div class="title">Select address</div>
+    </div>
+    
+    <div class="content">
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="center-pin">
+                <div class="pin-label">
+                    Order will be delivered here
+                    <div class="small-text">Move the map to change location</div>
+                </div>
+                <img src="images/location-pin.svg" alt="Pin" class="pin-marker" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMzYiIHZpZXdCb3g9IjAgMCAyNCAzNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMEMyOC41IDAsMjggMzYsMTIgMzZDLTQgMzYsLTQuNSAwLDEyIDBaIiBmaWxsPSIjRUE0MzM1Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOCIgZmlsbD0id2hpdGUiLz48L3N2Zz4='">
+            </div>
+            <div class="location-button" id="current-location-button">
+                <img src="images/location-icon.svg" alt="Current Location">
+            </div>
+        </div>
+    </div>
+    
+    <div class="address-container">
+        <div class="address-content">
+            <div class="address-fields">
+                <div class="current-address">
+                    <div class="current-address-label"> Delivery address</div>
+                    <div class="current-address-value" id="address-display">Loading...</div>
+                </div>
+                
+                <div class="input-field">
+                    <div class="input-area">
+                        <input type="text" id="name-input" placeholder="Your name" style="border: none; width: 100%; outline: none; background: transparent;">
+                    </div>
+                </div>
+                
+                <div class="input-field">
+                    <div class="input-area" id="whatsapp-input-area">
+                        <div style="display: flex; width: 100%; align-items: center;">
+                            <span style="color: #28292D; margin-right: 5px;">+91</span>
+                        <input type="tel" id="whatsapp-input" placeholder="Whatsapp number" maxlength="10" pattern="[0-9]{10}" style="border: none; width: 100%; outline: none; background: transparent;">
+                        </div>
+                    </div>
+                    <div class="error-message" id="whatsapp-error">Please enter a valid 10-digit phone number</div>
+                </div>
+            </div>
+            
+            <button class="confirm-button" id="confirm-button">
+                <span class="confirm-button-text">Place Order (₹${totalPrice})</span>
+                <img src="images/arrow-forward.svg" alt="Forward">
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        let map;
+        let userLatitude;
+        let userLongitude;
+        
+        // Define the center of your delivery area (HSR Layout, Bangalore)
+        const deliveryCenterLat = 12.9147;
+        const deliveryCenterLng = 77.6340;
+        
+        // Define delivery radius in kilometers
+        const deliveryRadiusKm = 3; // Set your preferred delivery radius
+        
+        // Function to calculate distance between two coordinates using Haversine formula
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the earth in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            const distance = R * c; // Distance in km
+            return distance;
+        }
+        
+        // Initialize OpenStreetMap
+        function initMap() {
+            // Default location (HSR Layout, Bangalore)
+            const defaultLat = 12.9147;
+            const defaultLng = 77.6340;
+            
+            // Check if we have saved location from the current session
+            if (!userLatitude || !userLongitude) {
+                userLatitude = defaultLat;
+                userLongitude = defaultLng;
+            }
+            
+            map = L.map('map', {
+                zoomControl: false // Disable default zoom control
+            }).setView([userLatitude, userLongitude], 18);
+            
+            L.tileLayer('https://api.maptiler.com/maps/outdoor-v2/{z}/{x}/{y}.png?key=ss82rA1GLhW9HT0OM6fp', {
+                attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(map);
+            
+            // Add zoom control to right center
+            L.control.zoom({
+                position: 'topright'
+            }).addTo(map);
+            
+            // Listen for map movement to update the address
+            map.on('moveend', function() {
+                const center = map.getCenter();
+                userLatitude = center.lat;
+                userLongitude = center.lng;
+                getAddressFromCoordinates(userLatitude, userLongitude);
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we have saved location from localStorage
+            const savedLat = localStorage.getItem('userLatitude');
+            const savedLng = localStorage.getItem('userLongitude');
+            
+            // Get current location first before initializing map
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        userLatitude = position.coords.latitude;
+                        userLongitude = position.coords.longitude;
+                        
+                        // Save to localStorage for future use
+                        localStorage.setItem('userLatitude', userLatitude);
+                        localStorage.setItem('userLongitude', userLongitude);
+                        
+                        // Now initialize map with this location
+                        initMap();
+                        
+                        // Get address for the location
+                        getAddressFromCoordinates(userLatitude, userLongitude);
+                    },
+                    function(error) {
+                        console.error('Geolocation error:', error);
+                        document.getElementById('address-display').textContent = 'Location access denied';
+                        
+                        // Try to use saved coordinates if available
+                        if (savedLat && savedLng) {
+                            userLatitude = parseFloat(savedLat);
+                            userLongitude = parseFloat(savedLng);
+                        }
+                        
+                        // Initialize map with saved or default location on error
+                        initMap();
+                    }
+                );
+            } else {
+                document.getElementById('address-display').textContent = 'Geolocation not supported by your browser';
+                
+                // Try to use saved coordinates if available
+                if (savedLat && savedLng) {
+                    userLatitude = parseFloat(savedLat);
+                    userLongitude = parseFloat(savedLng);
+                }
+                
+                // Initialize map with saved or default location
+                initMap();
+            }
+            
+            // Back button functionality
+            document.getElementById('back-button').addEventListener('click', function() {
+                window.history.back();
+            });
+            
+            // Add an error message container to the DOM
+            const errorMessageContainer = document.createElement('div');
+            errorMessageContainer.id = 'delivery-error';
+            errorMessageContainer.style.position = 'absolute';
+            errorMessageContainer.style.top = '80px';
+            errorMessageContainer.style.left = '50%';
+            errorMessageContainer.style.transform = 'translateX(-50%)';
+            errorMessageContainer.style.backgroundColor = '#FF3B30';
+            errorMessageContainer.style.color = '#FFFFFF';
+            errorMessageContainer.style.padding = '10px 15px';
+            errorMessageContainer.style.borderRadius = '4px';
+            errorMessageContainer.style.zIndex = '10';
+            errorMessageContainer.style.textAlign = 'center';
+            errorMessageContainer.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+            errorMessageContainer.style.display = 'none';
+            errorMessageContainer.style.fontWeight = '500';
+            document.querySelector('.map-container').appendChild(errorMessageContainer);
+            
+            // Get current location from localStorage if available
+            const savedAddress = localStorage.getItem('userAddress');
+            if (savedAddress) {
+                document.getElementById('address-display').textContent = savedAddress;
+            }
+            
+            // Current location button functionality
+            document.getElementById('current-location-button').addEventListener('click', function() {
+                document.getElementById('address-display').textContent = 'Loading...';
+                getCurrentLocation();
+            });
+            
+            // Phone number validation
+            const whatsappInput = document.getElementById('whatsapp-input');
+            const whatsappError = document.getElementById('whatsapp-error');
+            const whatsappInputArea = document.getElementById('whatsapp-input-area');
+            
+            whatsappInput.addEventListener('input', function(e) {
+                // Only allow numbers
+                this.value = this.value.replace(/[^0-9]/g, '');
+                
+                // Remove validation visual indicators while typing
+                    whatsappInputArea.classList.remove('error');
+                    whatsappError.style.display = 'none';
+            });
+            
+            // Get the amount based on coconut quantity
+            let quantity = localStorage.getItem('coconutQuantity') || 1;
+            let basePrice = localStorage.getItem('coconutBasePrice') || 80;
+            let totalPrice = basePrice * quantity;
+            
+            // Update button text to remove payment reference
+            document.getElementById('confirm-button').querySelector('.confirm-button-text').textContent = `Place Order (₹${totalPrice})`;
+            
+            // Confirm button functionality
+            document.getElementById('confirm-button').addEventListener('click', function() {
+                const name = document.getElementById('name-input').value;
+                const whatsapp = document.getElementById('whatsapp-input').value;
+                
+                // Simple validation
+                if (!name) {
+                    alert('Please enter your name');
+                    return;
+                }
+                
+                if (!whatsapp || !/^\d{10}$/.test(whatsapp)) {
+                    whatsappInputArea.classList.add('error');
+                    whatsappError.style.display = 'block';
+                    return;
+                }
+                
+                // Save all form data to localStorage FIRST before any async operations
+                localStorage.setItem('userName', name);
+                localStorage.setItem('userWhatsapp', whatsapp);
+                localStorage.setItem('userLatitude', userLatitude);
+                localStorage.setItem('userLongitude', userLongitude);
+                localStorage.setItem('userAddress', fullAddress || selectedAddress);
+                localStorage.setItem('orderAmount', totalPrice);
+                localStorage.setItem('coconutQuantity', quantity);
+                
+                // Generate a order ID
+                const orderId = "COCO" + Date.now();
+                localStorage.setItem('orderId', orderId);
+
+                // Initialize Razorpay payment
+                initiateRazorpayPayment(name, whatsapp, orderId, totalPrice);
+            });
+            
+            // Function to initialize Razorpay payment
+            function initiateRazorpayPayment(name, whatsapp, orderId, amount) {
+                // Razorpay payment options
+                const options = {
+                    key: "rzp_live_4ogkBBSJ1qo2mf", // Razorpay Key ID
+                    amount: amount * 100, // Amount in paisa (Razorpay accepts amount in smallest currency unit)
+                    currency: "INR",
+                    name: "Tender Coconut",
+                    description: "Purchase of " + localStorage.getItem('coconutQuantity') + " coconut(s)",
+                    image: "images/coconut.png",
+                    order_id: "", // Optional, generated server-side
+                    handler: function (response) {
+                        // Payment successful
+                        console.log("Payment successful:", response);
+                        
+                        // Store payment details
+                        localStorage.setItem('paymentStatus', 'success');
+                        localStorage.setItem('razorpay_payment_id', response.razorpay_payment_id);
+                        
+                        // Save to Supabase in the background
+                        saveOrderToSupabase(
+                            name,
+                            whatsapp,
+                            userLatitude,
+                            userLongitude,
+                            response.razorpay_payment_id
+                        ).catch(error => {
+                            console.error("Error saving to Supabase:", error);
+                        });
+                        
+                        // Redirect to delivery page
+                        window.location.href = 'delivery.html?razorpay_payment_id=' + response.razorpay_payment_id;
+                    },
+                    prefill: {
+                        name: name,
+                        contact: "+91" + whatsapp,
+                    },
+                    notes: {
+                        address: fullAddress || selectedAddress,
+                        order_id: orderId,
+                        quantity: localStorage.getItem('coconutQuantity')
+                    },
+                    theme: {
+                        color: "#F86930" // Match your app's theme color
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            console.log('Payment canceled by user');
+                        }
+                    }
+                };
+                
+                // Create Razorpay instance and open payment modal
+                const rzp = new Razorpay(options);
+                
+                rzp.on('payment.failed', function (response) {
+                    console.log("Payment failed:", response.error);
+                    localStorage.setItem('paymentStatus', 'failed');
+                    // Redirect to homepage on failure
+                    window.location.href = 'index.html';
+                });
+                
+                rzp.open();
+            }
+        });
+        
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        userLatitude = position.coords.latitude;
+                        userLongitude = position.coords.longitude;
+                        
+                        // Save to localStorage
+                        localStorage.setItem('userLatitude', userLatitude);
+                        localStorage.setItem('userLongitude', userLongitude);
+                        
+                        // Update map center with higher zoom for precision
+                        map.setView([userLatitude, userLongitude], 19, {
+                            animate: true,
+                            duration: 1
+                        });
+                        
+                        getAddressFromCoordinates(userLatitude, userLongitude);
+                    },
+                    function(error) {
+                        console.error('Geolocation error:', error);
+                        document.getElementById('address-display').textContent = 'Location access denied';
+                    }
+                );
+            } else {
+                document.getElementById('address-display').textContent = 'Geolocation not supported by your browser';
+            }
+        }
+        
+        function getAddressFromCoordinates(latitude, longitude) {
+            document.getElementById('address-display').textContent = 'Loading...';
+            
+            // Using Nominatim for reverse geocoding (OpenStreetMap)
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`)
+                .then(response => response.json())
+                .then(data => {
+                    let address = data.display_name;
+                    let shortAddress = address;
+                    
+                    // Limit to 15 characters
+                    if (address.length > 15) {
+                        shortAddress = address.substring(0, 12) + '...';
+                    }
+                    
+                    document.getElementById('address-display').textContent = shortAddress;
+                    localStorage.setItem('userAddress', address);
+                    localStorage.setItem('userLatitude', latitude);
+                    localStorage.setItem('userLongitude', longitude);
+                })
+                .catch(error => {
+                    console.error('Error fetching address:', error);
+                    document.getElementById('address-display').textContent = 'Unable to get location';
+                });
+        }
+        
+        // Initialize Supabase
+        const supabaseUrl = 'https://rjdlatvhhxwnkrzscgzy.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqZGxhdHZoaHh3bmtyenNjZ3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODY2MjUsImV4cCI6MjA1ODE2MjYyNX0.y8XSUAgwnsIJIb6Ixlbl8P7G_ShJCDqqJVUfzaqD81E';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Function to save order data to Supabase
+        async function saveOrderToSupabase(name, whatsapp, lat, lng, paymentId) {
+            // Validate inputs
+            if (!name || !whatsapp || !lat || !lng) {
+                console.error("Missing required data for Supabase entry");
+                return;
+            }
+            
+            // Create Google Maps URL for the location
+            const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+            
+            // Get current address from localStorage if available
+            const addressText = localStorage.getItem('userAddress') || 'Address not available';
+            
+            // Create order object with the three required fields
+            const orderData = {
+                "name": name.trim(),
+                "whatsapp": whatsapp.trim(),
+                "location": googleMapsUrl,
+                "address_text": addressText,
+                "timestamp": new Date().toISOString()
+            };
+            
+            console.log("Saving to Supabase:", orderData);
+            
+            // Write to Supabase 'coconut' table
+            const { data, error } = await supabase
+                .from('coconut')
+                .insert([orderData]);
+                
+            if (error) {
+                console.error("Error saving data to Supabase:", error);
+                return false;
+            } else {
+                console.log("Data saved successfully to Supabase coconut table");
+                return true;
+            }
+        }
+    </script>
+</body>
+</html>

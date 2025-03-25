@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order On The Way | Tender Coconut</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background-color: #FFF7E5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        
+        .title-bar {
+            display: flex;
+            align-items: center;
+            padding: 16px 16px 12px;
+            background: #FFFFFF;
+            width: 100%;
+            height: 68px;
+            z-index: 10;
+        }
+        
+        .left-icon {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+        }
+        
+        .left-icon img {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .title {
+            margin-left: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            color: #28292D;
+        }
+        
+        .background-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            bottom: -140px;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .background-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+        
+        .delivery-character {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 360px;
+            z-index: 2;
+        }
+        
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 100px 24px 0;
+            position: relative;
+            z-index: 5;
+        }
+        
+        .message-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 269px;
+            gap: 10px;
+            margin-bottom: 50px;
+        }
+        
+        .title-text {
+            font-weight: 600;
+            font-size: 24px;
+            line-height: 1.33em;
+            text-align: center;
+            color: #232323;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle-text {
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 1.57em;
+            text-align: center;
+            color: #232323;
+        }
+        
+        .contact-text {
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 1.57em;
+            text-align: center;
+            color: #34353A;
+            margin-top: 0;
+        }
+        
+        .contact-text a {
+            color: #34353A;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        /* Payment status styles */
+        #status-message {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        #status-message.success {
+            color: #4CD964;
+        }
+
+        #status-message.error {
+            color: #FF3B30;
+        }
+
+        #details {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        /* Toast styles */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .toast.success {
+            background-color: #4CD964;
+        }
+
+        .toast.error {
+            background-color: #FF3B30;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-bar">
+        <div class="left-icon" onclick="window.location.href='coconut.html'">
+            <img src="images/delivery/back-arrow.svg" alt="Back">
+        </div>
+        <div class="title">I'm on the way :)</div>
+    </div>
+    
+    <div class="background-container">
+        <img src="images/delivery/background.png" alt="Delivery Character" class="delivery-character">
+    </div>
+    
+    <div class="content-container">
+        <div class="message-box">
+            <h1 id="status-message" class="title-text">🧉's on Your Way!</h1>
+            <p id="details" class="subtitle-text">We'll deliver in max 10 mins! <br> If any delay,We'll keep you posted on WhatsApp!</p>
+        </div>
+        
+        <p class="contact-text">Max delay or lost your fruity cool? <a href="tel:+918220063926">Call me</a></p>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if payment was successful
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentId = urlParams.get('razorpay_payment_id');
+            const paymentStatus = localStorage.getItem('paymentStatus');
+            
+            // Get user data from localStorage with better error handling
+            const userData = {
+                name: localStorage.getItem('userName') || 'Unknown',
+                whatsapp: localStorage.getItem('userWhatsapp') || 'Unknown',
+                latitude: localStorage.getItem('userLatitude') || '0',
+                longitude: localStorage.getItem('userLongitude') || '0',
+                address: localStorage.getItem('userAddress') || 'No address provided',
+                amount: localStorage.getItem('orderAmount') || '0',
+                quantity: localStorage.getItem('coconutQuantity') || '1',
+                paymentId: paymentId || 'N/A'
+            };
+            
+            console.log("Delivery page loaded with user data:", userData);
+            
+            // Immediately try to save data to sheet 
+            // Success or failure will be handled by the saveToSheetDB function
+            saveToSheetDB(userData);
+
+            function showToast(message, isSuccess = true) {
+                const toast = document.createElement('div');
+                toast.className = `toast ${isSuccess ? 'success' : 'error'}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => {
+                            document.body.removeChild(toast);
+                        }, 300);
+                    }, 3000);
+                }, 100);
+            }
+            
+            // Function to save data to SheetDB
+            function saveToSheetDB(userData) {
+                console.log("Saving order data to SheetDB:", userData);
+                
+                // Create a more reliable payload structure for SheetDB
+                const payload = {
+                    data: [{
+                        'Name': userData.name || 'Unknown',
+                        'WhatsApp Number': userData.whatsapp || 'Unknown',
+                        'Latitude': userData.latitude || '0',
+                        'Longitude': userData.longitude || '0',
+                        'Amount': userData.amount || '0'
+                    }]
+                };
+                
+                console.log("SheetDB payload:", JSON.stringify(payload));
+                
+                // Make sure we're using the correct SheetDB API URL without any @ symbol
+                fetch('https://sheetdb.io/api/v1/0z54wg7jnx4ew', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    console.log("SheetDB response status:", response.status);
+                    console.log("SheetDB response headers:", [...response.headers].map(h => h.join(': ')).join(', '));
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success saving to SheetDB:', data);
+                    showToast('Order details saved successfully!');
+                })
+                .catch(error => {
+                    console.error('Error saving to SheetDB:', error);
+                    // Try a direct fetch with no credentials or complex headers
+                    directSheetDBSave(userData);
+                });
+            }
+            
+            // Direct fetch approach for maximum compatibility
+            function directSheetDBSave(userData) {
+                console.log("Trying direct SheetDB approach");
+                
+                // Simple payload - essential fields only
+                const simpleData = {
+                    'Name': userData.name || 'Unknown',
+                    'WhatsApp Number': userData.whatsapp || 'Unknown', 
+                    'Latitude': userData.latitude || '0',
+                    'Longitude': userData.longitude || '0',
+                    'Amount': userData.amount || '0'
+                };
+                
+                // Use XMLHttpRequest as most compatible approach
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://sheetdb.io/api/v1/0z54wg7jnx4ew');
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 201) {
+                        console.log('Success with direct XHR approach:', xhr.responseText);
+                        showToast('Order details saved successfully!');
+                    } else {
+                        console.error('Error with direct XHR approach:', xhr.status, xhr.responseText);
+                    }
+                };
+                xhr.onerror = function() {
+                    console.error('Network error with XHR approach');
+                };
+                
+                xhr.send(JSON.stringify({ data: [simpleData] }));
+            }
+
+            // Check payment status and display appropriate message
+            if (paymentId || paymentStatus === 'success' || paymentStatus === 'paid') {
+                // Order successful
+                document.getElementById('status-message').innerText = 'Your Order is Confirmed!';
+                document.getElementById('status-message').className = 'success';
+                document.getElementById('details').innerText = 'Your coconuts will be delivered soon! We\'ll notify you on WhatsApp when the delivery is on the way.';
+                
+                // Clear payment status from localStorage
+                localStorage.removeItem('paymentStatus');
+                
+            } else if (paymentStatus === 'failed') {
+                // Order failed
+                document.getElementById('status-message').innerText = 'Order Failed';
+                document.getElementById('status-message').className = 'error';
+                document.getElementById('details').innerText = 'Your order could not be processed. Please try again.';
+                localStorage.removeItem('paymentStatus');
+                
+            } else {
+                // No order information
+                document.getElementById('status-message').innerText = 'No Order Information';
+                document.getElementById('status-message').className = 'error';
+                document.getElementById('details').innerText = 'No order information was found. Please place an order first.';
+            }
+        });
+    </script>
+</body>
+</html>

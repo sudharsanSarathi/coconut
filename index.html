@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tender Coconut Delivery</title>
+    <link rel="stylesheet" href="coconut.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 220px; /* Adjust based on footer height */
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="content-area">
+            <div class="header">
+                <div class="delivery-info">
+                    <div class="delivery-time">
+                        <div class="time">10<sup>*</sup></div>
+                        <div class="mins">Mins</div>
+                    </div>
+                    <div class="address">
+                        <div class="delivery-at">Delivery to</div>
+                        <div class="location" id="user-location">Loading location...</div>
+                    </div>
+                </div>
+                <div class="profile">
+                    <img src="images/profile.png" alt="Profile" onclick="window.location.href='story.html'" style="cursor: pointer;">
+                </div>
+            </div>
+
+            <div class="coconut-image">
+                <img src="images/coconut.png" alt="Tender Coconut">
+            </div>
+
+            <div class="status-message">
+                <span>Only few Coconuts Left, hurry up!</span>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <img src="images/chemical-free.png" alt="Chemical Free Icon">
+                    <span style="white-space: nowrap;">Chemical-Free</span>
+                </div>
+                <div class="feature">
+                    <img src="images/farm-fresh.png" alt="Farm Fresh Icon">
+                    <span>Farm Fresh</span>
+                </div>
+                <div class="feature">
+                    <img src="images/more-water.png" alt="More Water Icon">
+                    <span>More water</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="product-info">
+                <div class="product-details">
+                    <h2>Tender coconut</h2>
+                    <p>Pure & Pesticide-Free</p>
+                </div>
+                <div class="price-details">
+                    <div class="price">
+                        <span class="amount">₹80</span>
+                        <span class="unit">/ piece</span>
+                    </div>
+                    <div class="delivery-badge">FREE DELIVERY 🤍 </div>
+                </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="action-row">
+                <div class="quantity-selector">
+                    <button class="minus">−</button>
+                    <span>1</span>
+                    <button class="plus">+</button>
+                </div>
+                <button class="pay-button" id="pay-button">
+                    Pay ₹80
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+                        
+                        // Using Nominatim for reverse geocoding (OpenStreetMap)
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`)
+                            .then(response => response.json())
+                            .then(data => {
+                                let address = data.display_name;
+                                // Limit to 30 characters
+                                if (address.length > 30) {
+                                    address = address.substring(0, 27) + '...';
+                                }
+                                document.getElementById('user-location').textContent = address;
+                            })
+                            .catch(error => {
+                                console.error('Error fetching address:', error);
+                                document.getElementById('user-location').textContent = 'Unable to get precise location';
+                            });
+                    },
+                    function(error) {
+                        console.error('Geolocation error:', error);
+                        document.getElementById('user-location').textContent = 'Location access denied';
+                    }
+                );
+            } else {
+                document.getElementById('user-location').textContent = 'Geolocation not supported by your browser';
+            }
+            
+            // Quantity selector functionality
+            const minusBtn = document.querySelector('.minus');
+            const plusBtn = document.querySelector('.plus');
+            const quantitySpan = document.querySelector('.quantity-selector span');
+            const payButton = document.querySelector('.pay-button');
+            const priceText = document.querySelector('.amount').textContent;
+            const basePrice = parseInt(priceText.replace('₹', ''));
+            let quantity = 1;
+            
+            // Initial state setup
+            updateQuantityUI();
+            
+            minusBtn.addEventListener('click', function() {
+                if (quantity > 1) {
+                    quantity--;
+                    updateQuantityUI();
+                }
+            });
+            
+            plusBtn.addEventListener('click', function() {
+                if (quantity < 8) {
+                    quantity++;
+                    updateQuantityUI();
+                }
+            });
+            
+            function updateQuantityUI() {
+                // Update quantity display
+                quantitySpan.textContent = quantity;
+                
+                // Disable/enable minus button
+                if (quantity <= 1) {
+                    minusBtn.disabled = true;
+                    minusBtn.style.opacity = '0.5';
+                    minusBtn.style.cursor = 'not-allowed';
+                } else {
+                    minusBtn.disabled = false;
+                    minusBtn.style.opacity = '1';
+                    minusBtn.style.cursor = 'pointer';
+                }
+                
+                // Disable/enable plus button
+                if (quantity >= 8) {
+                    plusBtn.disabled = true;
+                    plusBtn.style.opacity = '0.5';
+                    plusBtn.style.cursor = 'not-allowed';
+                } else {
+                    plusBtn.disabled = false;
+                    plusBtn.style.opacity = '1';
+                    plusBtn.style.cursor = 'pointer';
+                }
+                
+                // Update price in button
+                const totalPrice = basePrice * quantity;
+                payButton.innerHTML = `Pay ₹${totalPrice}<span class="arrow">→</span>`;
+            }
+            
+            // Add pay button click handler
+            document.getElementById('pay-button').addEventListener('click', function() {
+                // Save current product information to localStorage
+                localStorage.setItem('coconutQuantity', quantity);
+                localStorage.setItem('coconutBasePrice', basePrice);
+                
+                // Redirect to address page
+                window.location.href = 'address.html';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[dev]
+  functions = "netlify/functions"
+  publish = "."
+  
+[template.environment]
+  CASHFREE_APP_ID = "Your Cashfree App ID"
+  CASHFREE_SECRET_KEY = "Your Cashfree Secret Key"
