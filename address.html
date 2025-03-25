@@ -337,7 +337,7 @@
             </div>
             
             <button class="confirm-button" id="confirm-button">
-                <span class="confirm-button-text">Place Order (₹${totalPrice})</span>
+                <span class="confirm-button-text">Pay</span>
                 <img src="images/arrow-forward.svg" alt="Forward">
             </button>
         </div>
@@ -347,6 +347,8 @@
         let map;
         let userLatitude;
         let userLongitude;
+        let fullAddress;
+        let selectedAddress;
         
         // Define the center of your delivery area (HSR Layout, Bangalore)
         const deliveryCenterLat = 12.9147;
@@ -507,8 +509,8 @@
             let basePrice = localStorage.getItem('coconutBasePrice') || 80;
             let totalPrice = basePrice * quantity;
             
-            // Update button text to remove payment reference
-            document.getElementById('confirm-button').querySelector('.confirm-button-text').textContent = `Place Order (₹${totalPrice})`;
+            // Update button text to remove brackets and directly display price
+            document.getElementById('confirm-button').querySelector('.confirm-button-text').textContent = `Pay ₹${totalPrice}`;
             
             // Confirm button functionality
             document.getElementById('confirm-button').addEventListener('click', function() {
@@ -540,12 +542,20 @@
                 const orderId = "COCO" + Date.now();
                 localStorage.setItem('orderId', orderId);
 
-                // Initialize Razorpay payment
-                initiateRazorpayPayment(name, whatsapp, orderId, totalPrice);
+                try {
+                    // Initialize Razorpay payment - with error handling
+                    console.log("Initializing Razorpay payment...");
+                    initiateRazorpayPayment(name, whatsapp, orderId, totalPrice);
+                } catch (error) {
+                    console.error("Error initializing Razorpay:", error);
+                    alert("There was an error initializing the payment gateway. Please try again.");
+                }
             });
             
             // Function to initialize Razorpay payment
             function initiateRazorpayPayment(name, whatsapp, orderId, amount) {
+                console.log("Setting up Razorpay with amount:", amount);
+                
                 // Razorpay payment options
                 const options = {
                     key: "rzp_live_4ogkBBSJ1qo2mf", // Razorpay Key ID
@@ -554,7 +564,6 @@
                     name: "Tender Coconut",
                     description: "Purchase of " + localStorage.getItem('coconutQuantity') + " coconut(s)",
                     image: "images/coconut.png",
-                    order_id: "", // Optional, generated server-side
                     handler: function (response) {
                         // Payment successful
                         console.log("Payment successful:", response);
@@ -596,17 +605,24 @@
                     }
                 };
                 
-                // Create Razorpay instance and open payment modal
-                const rzp = new Razorpay(options);
-                
-                rzp.on('payment.failed', function (response) {
-                    console.log("Payment failed:", response.error);
-                    localStorage.setItem('paymentStatus', 'failed');
-                    // Redirect to homepage on failure
-                    window.location.href = 'index.html';
-                });
-                
-                rzp.open();
+                try {
+                    // Create Razorpay instance and open payment modal
+                    console.log("Creating Razorpay instance...");
+                    const rzp = new Razorpay(options);
+                    
+                    rzp.on('payment.failed', function (response) {
+                        console.log("Payment failed:", response.error);
+                        localStorage.setItem('paymentStatus', 'failed');
+                        // Redirect to homepage on failure
+                        window.location.href = 'index.html';
+                    });
+                    
+                    console.log("Opening Razorpay payment modal...");
+                    rzp.open();
+                } catch (error) {
+                    console.error("Error in Razorpay initialization:", error);
+                    alert("Payment gateway error. Please try again later.");
+                }
             }
         });
         
@@ -647,6 +663,7 @@
                 .then(response => response.json())
                 .then(data => {
                     let address = data.display_name;
+                    fullAddress = address;
                     let shortAddress = address;
                     
                     // Limit to 15 characters
@@ -654,6 +671,7 @@
                         shortAddress = address.substring(0, 12) + '...';
                     }
                     
+                    selectedAddress = shortAddress;
                     document.getElementById('address-display').textContent = shortAddress;
                     localStorage.setItem('userAddress', address);
                     localStorage.setItem('userLatitude', latitude);
