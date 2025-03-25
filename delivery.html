@@ -318,29 +318,13 @@
                 xhr.send(JSON.stringify({ data: [simpleData] }));
             }
 
-            // Check payment status and display appropriate message
-            if (paymentId || paymentStatus === 'success' || paymentStatus === 'paid') {
-                // Order successful
-                document.getElementById('status-message').innerText = 'Your Order is Confirmed!';
-                document.getElementById('status-message').className = 'success';
-                document.getElementById('details').innerText = 'Your coconuts will be delivered soon! We\'ll notify you on WhatsApp when the delivery is on the way.';
-                
-                // Clear payment status from localStorage
-                localStorage.removeItem('paymentStatus');
-                
-            } else if (paymentStatus === 'failed') {
-                // Order failed
-                document.getElementById('status-message').innerText = 'Order Failed';
-                document.getElementById('status-message').className = 'error';
-                document.getElementById('details').innerText = 'Your order could not be processed. Please try again.';
-                localStorage.removeItem('paymentStatus');
-                
-            } else {
-                // No order information
-                document.getElementById('status-message').innerText = 'No Order Information';
-                document.getElementById('status-message').className = 'error';
-                document.getElementById('details').innerText = 'No order information was found. Please place an order first.';
-            }
+            // Keep static text as per design - no conditionals
+            // The original design text is maintained
+            document.getElementById('status-message').innerText = '🧉\'s on Your Way!';
+            document.getElementById('details').innerText = 'We\'ll deliver in max 10 mins! \nIf any delay,We\'ll keep you posted on WhatsApp!';
+            
+            // Clear payment status from localStorage if needed
+            localStorage.removeItem('paymentStatus');
         });
     </script>
 </body>

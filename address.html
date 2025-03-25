@@ -216,7 +216,7 @@
         }
         
         .confirm-button {
-            background: #1D1D1D;
+            background: #ff0000;
             border-radius: 12px;
             padding: 16px 24px;
             display: flex;
@@ -337,7 +337,7 @@
             </div>
             
             <button class="confirm-button" id="confirm-button">
-                <span class="confirm-button-text">Place Order (₹${totalPrice})</span>
+                <span class="confirm-button-text">Pay</span>
                 <img src="images/arrow-forward.svg" alt="Forward">
             </button>
         </div>
@@ -507,15 +507,16 @@
             let basePrice = localStorage.getItem('coconutBasePrice') || 80;
             let totalPrice = basePrice * quantity;
             
-            // Update button text to remove payment reference
-            document.getElementById('confirm-button').querySelector('.confirm-button-text').textContent = `Place Order (₹${totalPrice})`;
+            // Update button text to remove brackets and directly display price
+            document.getElementById('confirm-button').querySelector('.confirm-button-text').textContent = `Pay ₹${totalPrice}`;
             
-            // Confirm button functionality
+            // Confirm button functionality - SIMPLIFIED DIRECT APPROACH
             document.getElementById('confirm-button').addEventListener('click', function() {
+                // Get user data
                 const name = document.getElementById('name-input').value;
                 const whatsapp = document.getElementById('whatsapp-input').value;
                 
-                // Simple validation
+                // Basic validation
                 if (!name) {
                     alert('Please enter your name');
                     return;
@@ -527,87 +528,40 @@
                     return;
                 }
                 
-                // Save all form data to localStorage FIRST before any async operations
+                // Save basic info to localStorage
                 localStorage.setItem('userName', name);
                 localStorage.setItem('userWhatsapp', whatsapp);
-                localStorage.setItem('userLatitude', userLatitude);
-                localStorage.setItem('userLongitude', userLongitude);
-                localStorage.setItem('userAddress', fullAddress || selectedAddress);
                 localStorage.setItem('orderAmount', totalPrice);
-                localStorage.setItem('coconutQuantity', quantity);
                 
-                // Generate a order ID
-                const orderId = "COCO" + Date.now();
-                localStorage.setItem('orderId', orderId);
-
-                // Initialize Razorpay payment
-                initiateRazorpayPayment(name, whatsapp, orderId, totalPrice);
-            });
-            
-            // Function to initialize Razorpay payment
-            function initiateRazorpayPayment(name, whatsapp, orderId, amount) {
-                // Razorpay payment options
-                const options = {
-                    key: "rzp_live_4ogkBBSJ1qo2mf", // Razorpay Key ID
-                    amount: amount * 100, // Amount in paisa (Razorpay accepts amount in smallest currency unit)
+                // Create options
+                var options = {
+                    key: "rzp_live_rvdqpip0lM2Tp2",
+                    amount: totalPrice * 100,
                     currency: "INR",
                     name: "Tender Coconut",
-                    description: "Purchase of " + localStorage.getItem('coconutQuantity') + " coconut(s)",
+                    description: quantity + " coconuts",
                     image: "images/coconut.png",
-                    order_id: "", // Optional, generated server-side
                     handler: function (response) {
-                        // Payment successful
-                        console.log("Payment successful:", response);
-                        
-                        // Store payment details
+                        console.log(response);
                         localStorage.setItem('paymentStatus', 'success');
-                        localStorage.setItem('razorpay_payment_id', response.razorpay_payment_id);
-                        
-                        // Save to Supabase in the background
-                        saveOrderToSupabase(
-                            name,
-                            whatsapp,
-                            userLatitude,
-                            userLongitude,
-                            response.razorpay_payment_id
-                        ).catch(error => {
-                            console.error("Error saving to Supabase:", error);
-                        });
-                        
-                        // Redirect to delivery page
-                        window.location.href = 'delivery.html?razorpay_payment_id=' + response.razorpay_payment_id;
+                        window.location.href = "delivery.html";
                     },
                     prefill: {
                         name: name,
-                        contact: "+91" + whatsapp,
-                    },
-                    notes: {
-                        address: fullAddress || selectedAddress,
-                        order_id: orderId,
-                        quantity: localStorage.getItem('coconutQuantity')
+                        contact: "+91" + whatsapp
                     },
                     theme: {
-                        color: "#F86930" // Match your app's theme color
-                    },
-                    modal: {
-                        ondismiss: function() {
-                            console.log('Payment canceled by user');
-                        }
+                        color: "#F86930"
                     }
                 };
                 
-                // Create Razorpay instance and open payment modal
-                const rzp = new Razorpay(options);
+                // Direct Razorpay creation
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
                 
-                rzp.on('payment.failed', function (response) {
-                    console.log("Payment failed:", response.error);
-                    localStorage.setItem('paymentStatus', 'failed');
-                    // Redirect to homepage on failure
-                    window.location.href = 'index.html';
-                });
-                
-                rzp.open();
-            }
+                // Prevent default button action
+                return false;
+            });
         });
         
         function getCurrentLocation() {
